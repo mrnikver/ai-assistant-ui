@@ -76,6 +76,17 @@
 .memory-form select, .memory-form input { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; outline: 0; color: var(--text); background: #0b1522; font-size: 12px; }
 .memory-form select:focus, .memory-form input:focus { border-color: #498078; }
 .full-width { width: 100%; margin-top: 16px; }
+.memory-danger-zone { margin: 0 18px 18px; padding: 16px; border: 1px solid #5e3942; border-radius: 10px; background: #1d1820; }
+.memory-danger-zone h3 { margin: 0; font-size: 13px; }
+.memory-danger-zone p { margin: 6px 0 13px; color: #a996a0; font-size: 10px; line-height: 1.5; }
+.danger-outline-button, .danger-button { padding: 9px 12px; border: 1px solid #8b4857; border-radius: 8px; color: #ffb1b1; background: transparent; font-size: 11px; font-weight: 650; }
+.danger-outline-button:hover:not(:disabled) { border-color: var(--danger); color: #ffd0d0; }
+.danger-button { border-color: #c95f6c; color: #fff; background: #a94352; }
+.danger-button:hover:not(:disabled) { background: #bd4d5d; }
+.danger-outline-button:disabled, .danger-button:disabled { opacity: .45; }
+.memory-reset-confirmation { padding: 2px; }
+.confirmation-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.success-banner { margin: 0 26px 18px; padding: 11px 13px; border: 1px solid #326755; border-radius: 8px; color: #aaf0d2; background: #17332d; font-size: 11px; line-height: 1.5; }
 .error-banner { margin: 0 26px 18px; padding: 11px 13px; border: 1px solid #6a3b46; border-radius: 8px; color: #ffb3b3; background: #321d27; font-size: 11px; line-height: 1.5; }
 
 .trace-backdrop { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; background: rgba(3, 8, 14, .68); backdrop-filter: blur(4px); }
