@@ -19,6 +19,8 @@
 .brand h1 { margin: 2px 0 0; font-size: 20px; letter-spacing: -.02em; }
 .eyebrow { margin: 0; color: var(--accent); font: 500 10px 'DM Mono', monospace; letter-spacing: .13em; text-transform: uppercase; }
 .connection-status { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+.topbar-actions { display: flex; align-items: center; gap: 18px; }
+.architecture-trigger { display: flex; align-items: center; gap: 7px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
 .workspace { width: min(1500px, 94vw); margin: 0 auto; padding: 34px 0 46px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; }
 .chat-panel, .memory-panel { border: 1px solid var(--border); border-radius: 18px; background: rgba(14, 25, 39, .94); box-shadow: 0 24px 70px rgba(0, 0, 0, .22); overflow: hidden; }
@@ -114,7 +116,7 @@
 }
 
 @media (max-width: 560px) {
-  .topbar { height: 76px; padding: 0 18px; }.connection-status { display: none; }
+  .topbar { height: 76px; padding: 0 18px; }.connection-status { display: none; }.topbar-actions { gap: 8px; }
   .workspace { width: 100%; padding: 0; gap: 12px; }.chat-panel, .memory-panel { border-radius: 0; border-left: 0; border-right: 0; }
   .chat-heading { align-items: flex-start; gap: 12px; }.secondary-button { white-space: nowrap; }
   .message-list { padding: 25px 20px; }.message { max-width: 92%; }
