@@ -290,8 +290,13 @@ function formatMemoryKey(key: string) {
   return key.toLowerCase().split('_').map((word) => word[0].toUpperCase() + word.slice(1)).join(' ')
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+function formatDate(value?: string) {
+  if (!value) return 'recently'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'recently'
+
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date)
 }
 
 export default App
