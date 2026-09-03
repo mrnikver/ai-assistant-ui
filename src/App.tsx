@@ -4,6 +4,7 @@ import { ApiError, getExecutionTrace, getMemories, resetPersistentMemory, sendCh
 import type { ChatMessage, Memory, MemoryKey, TraceDetails, TraceSummary } from './types'
 import { ExecutionTracePanel } from './ExecutionTracePanel'
 import { AgentArchitectureDialog } from './AgentArchitectureDialog'
+import { AssistantMarkdown } from './AssistantMarkdown'
 import './App.css'
 
 const MEMORY_KEYS: { value: MemoryKey; label: string }[] = [
@@ -245,7 +246,9 @@ function App() {
                     </span>
                   )}
                 </div>
-                <p>{chatMessage.content}</p>
+                {chatMessage.role === 'assistant'
+                  ? <AssistantMarkdown content={chatMessage.content} />
+                  : <p>{chatMessage.content}</p>}
                 {chatMessage.role === 'assistant' && chatMessage.trace && (
                   <button className="trace-trigger" type="button" onClick={() => void openTrace(chatMessage.trace!)}>
                     <span aria-hidden="true">⌁</span>
