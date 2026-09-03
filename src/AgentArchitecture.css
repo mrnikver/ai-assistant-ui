@@ -32,6 +32,8 @@
 .architecture-node strong { font-size: 11px; }
 .architecture-node span { margin-top: 3px; color: #8498ad; font: 400 8px 'DM Mono', monospace; }
 .architecture-node.category-model { border-color: #4d7185; background: #163044; }
+.architecture-node.category-supervisor { border-color: #d8a34a; background: #3b2b18; box-shadow: 0 0 20px rgba(216, 163, 74, .12); }
+.architecture-node.category-agent { border-color: #4f9a82; background: #15342f; }
 .architecture-node.category-tool { border-color: #6b5a39; background: #2a251d; }
 .architecture-node.category-data { border-color: #3d665b; background: #142c2a; }
 .architecture-node.category-observability { border-color: #554873; background: #211d35; }
@@ -40,6 +42,8 @@
 .architecture-node.flow-dimmed { opacity: .24; }
 .architecture-details { min-height: 0; padding: 20px; overflow-y: auto; border: 1px solid #315069; border-top: 3px solid #557593; border-radius: 13px; background: #101d2c; }
 .architecture-details.category-tool { border-top-color: var(--warning); }
+.architecture-details.category-supervisor { border-top-color: #d8a34a; }
+.architecture-details.category-agent { border-top-color: #62c9a8; }
 .architecture-details.category-data { border-top-color: var(--accent); }
 .architecture-details.category-observability { border-top-color: #9d82e5; }
 .architecture-details h3 { margin: 6px 0 12px; font-size: 18px; }
