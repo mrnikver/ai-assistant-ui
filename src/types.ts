@@ -21,8 +21,8 @@ export interface Memory {
   id: string
   key: string
   value: string
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface ChatMessage {
