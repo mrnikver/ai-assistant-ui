@@ -57,6 +57,10 @@ export interface MemoryRequest {
   value: string
 }
 
+export interface MemoryResetResponse {
+  deletedCount: number
+}
+
 export interface Memory {
   id: string
   key: string

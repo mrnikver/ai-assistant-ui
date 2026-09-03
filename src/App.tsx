@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ApiError, getExecutionTrace, getMemories, sendChatMessage, saveMemory } from './api'
+import { ApiError, getExecutionTrace, getMemories, resetPersistentMemory, sendChatMessage, saveMemory } from './api'
 import type { ChatMessage, Memory, MemoryKey, TraceDetails, TraceSummary } from './types'
 import { ExecutionTracePanel } from './ExecutionTracePanel'
 import { AgentArchitectureDialog } from './AgentArchitectureDialog'
@@ -28,7 +28,10 @@ function App() {
   const [memoryValue, setMemoryValue] = useState('')
   const [isLoadingMemories, setIsLoadingMemories] = useState(true)
   const [isSavingMemory, setIsSavingMemory] = useState(false)
+  const [isResetConfirming, setIsResetConfirming] = useState(false)
+  const [isResettingMemory, setIsResettingMemory] = useState(false)
   const [memoryError, setMemoryError] = useState<string>()
+  const [memorySuccess, setMemorySuccess] = useState<string>()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const loadMemories = useCallback(async () => {
@@ -114,6 +117,7 @@ function App() {
 
     setIsSavingMemory(true)
     setMemoryError(undefined)
+    setMemorySuccess(undefined)
 
     try {
       await saveMemory({ key: memoryKey, value: trimmedValue })
@@ -123,6 +127,25 @@ function App() {
       setMemoryError(toErrorMessage(error))
     } finally {
       setIsSavingMemory(false)
+    }
+  }
+
+  async function handleMemoryReset() {
+    if (isResettingMemory) return
+    setIsResettingMemory(true)
+    setMemoryError(undefined)
+    setMemorySuccess(undefined)
+    try {
+      const result = await resetPersistentMemory()
+      setMemories([])
+      setIsResetConfirming(false)
+      setMemorySuccess(result.deletedCount === 1
+        ? 'Persistent memory reset. 1 saved memory was deleted.'
+        : `Persistent memory reset. ${result.deletedCount} saved memories were deleted.`)
+    } catch (error) {
+      setMemoryError(toErrorMessage(error))
+    } finally {
+      setIsResettingMemory(false)
     }
   }
 
@@ -316,6 +339,28 @@ function App() {
             </button>
           </form>
 
+          <section className="memory-danger-zone" aria-labelledby="memory-reset-heading">
+            {!isResetConfirming ? <>
+              <div><h3 id="memory-reset-heading">Reset persistent memory</h3>
+                <p>Delete all saved facts used in future investigations.</p></div>
+              <button className="danger-outline-button" type="button" disabled={isResettingMemory}
+                onClick={() => { setIsResetConfirming(true); setMemoryError(undefined); setMemorySuccess(undefined) }}>
+                Reset persistent memory
+              </button>
+            </> : <div className="memory-reset-confirmation" role="alertdialog" aria-modal="false"
+              aria-labelledby="memory-reset-confirm-title" aria-describedby="memory-reset-confirm-description">
+              <h3 id="memory-reset-confirm-title">Reset persistent memory?</h3>
+              <p id="memory-reset-confirm-description">This will permanently delete all saved persistent memories used by the assistant. Conversation history, knowledge, traces, and configuration will not be changed.</p>
+              <div className="confirmation-actions">
+                <button className="secondary-button" type="button" disabled={isResettingMemory}
+                  onClick={() => setIsResetConfirming(false)}>Cancel</button>
+                <button className="danger-button" type="button" disabled={isResettingMemory}
+                  onClick={() => void handleMemoryReset()}>{isResettingMemory ? 'Resetting…' : 'Reset memory'}</button>
+              </div>
+            </div>}
+          </section>
+
+          {memorySuccess && <div className="success-banner" role="status">{memorySuccess}</div>}
           {memoryError && <div className="error-banner" role="alert">{memoryError}</div>}
         </aside>
       </div>
