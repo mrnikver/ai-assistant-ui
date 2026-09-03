@@ -15,7 +15,7 @@ export interface ChatResponse {
 }
 
 export type TraceStatus = 'SUCCESS' | 'ERROR'
-export type TraceSpanType = 'AGENT_RUN' | 'AGENT_ITERATION' | 'LLM_CALL' | 'TOOL_CALL'
+export type TraceSpanType = 'AGENT_RUN' | 'SUPERVISOR' | 'AGENT' | 'AGENT_ITERATION' | 'LLM_CALL' | 'TOOL_CALL'
   | 'KNOWLEDGE_SEARCH' | 'EMBEDDING' | 'VECTOR_SEARCH' | 'MEMORY_LOOKUP' | 'FINAL_RESPONSE'
 
 export interface TraceSummary {

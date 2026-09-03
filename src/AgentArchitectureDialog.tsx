@@ -6,7 +6,7 @@ import './AgentArchitecture.css'
 interface Props { onClose: () => void }
 
 export function AgentArchitectureDialog({ onClose }: Props) {
-  const [selectedId, setSelectedId] = useState('agent')
+  const [selectedId, setSelectedId] = useState('supervisor')
   const [flowStep, setFlowStep] = useState<number>()
   const selectedNode = architectureNodes.find((node) => node.id === selectedId) ?? architectureNodes[0]
   const activeStep = flowStep === undefined ? undefined : architectureFlowSteps[flowStep]
@@ -25,7 +25,7 @@ export function AgentArchitectureDialog({ onClose }: Props) {
         <header className="architecture-header">
           <div>
             <p className="eyebrow">System design</p>
-            <h2 id="architecture-heading">How the agent works</h2>
+            <h2 id="architecture-heading">How the agent team works</h2>
             <p>Architecture explains the design. Execution traces show one request.</p>
           </div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="Close agent architecture">×</button>
@@ -36,7 +36,7 @@ export function AgentArchitectureDialog({ onClose }: Props) {
             aria-pressed={flowStep !== undefined} onClick={() => setFlowStep(flowStep === undefined ? 0 : undefined)}>
             {flowStep === undefined ? 'Show request flow' : 'Exit request flow'}
           </button>
-          <span><i className="architecture-key optional" /> Optional tool path</span>
+          <span><i className="architecture-key optional" /> Delegation / tool path</span>
           <span><i className="architecture-key observes" /> Observability only</span>
         </div>
 

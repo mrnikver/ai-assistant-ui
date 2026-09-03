@@ -1,176 +1,75 @@
-export type ArchitectureCategory = 'client' | 'orchestration' | 'model' | 'tool' | 'data' | 'observability'
+export type ArchitectureCategory = 'client' | 'orchestration' | 'supervisor' | 'agent' | 'model' | 'tool' | 'data' | 'observability'
 
 export interface ArchitectureNodeModel {
-  id: string
-  title: string
-  subtitle: string
-  category: ArchitectureCategory
-  x: number
-  y: number
-  responsibility: string
-  input: string
-  output: string
-  communicatesWith: string
-  constraint: string
+  id: string; title: string; subtitle: string; category: ArchitectureCategory; x: number; y: number
+  responsibility: string; input: string; output: string; communicatesWith: string; constraint: string
 }
-
 export interface ArchitectureEdgeModel {
-  id: string
-  source: string
-  target: string
-  label?: string
-  kind?: 'normal' | 'optional' | 'feedback' | 'observes'
-  bend?: number
+  id: string; source: string; target: string; label?: string
+  kind?: 'normal' | 'optional' | 'feedback' | 'observes'; bend?: number
 }
-
-export interface ArchitectureFlowStep {
-  title: string
-  description: string
-  nodeIds: string[]
-  edgeIds: string[]
-}
+export interface ArchitectureFlowStep { title: string; description: string; nodeIds: string[]; edgeIds: string[] }
 
 export const architectureNodes: ArchitectureNodeModel[] = [
-  {
-    id: 'user', title: 'User', subtitle: 'Request', category: 'client', x: 70, y: 80,
-    responsibility: 'Starts a deployment investigation from the browser interface.',
-    input: 'A question and optional existing conversation ID.', output: 'A chat request.',
-    communicatesWith: 'ai-assistant-ui.', constraint: 'The browser never calls model or data services directly.',
-  },
-  {
-    id: 'ui', title: 'ai-assistant-ui', subtitle: 'React client', category: 'client', x: 225, y: 80,
-    responsibility: 'Presents chat, memory controls, architecture help, and per-message execution traces.',
-    input: 'User actions and backend response DTOs.', output: 'HTTP requests and rendered assistant messages.',
-    communicatesWith: 'Chat, memory, and trace endpoints.', constraint: 'Architecture is explanatory; execution traces describe one real request.',
-  },
-  {
-    id: 'api', title: 'Backend API', subtitle: 'Spring controllers', category: 'orchestration', x: 390, y: 80,
-    responsibility: 'Validates HTTP input, resolves a conversation ID, and delegates the request to the assistant flow.',
-    input: 'POST /chat with message and optional conversationId.', output: 'Answer, confidence, message ID, and trace summary.',
-    communicatesWith: 'AssistantService and the React UI.', constraint: 'Controllers expose DTOs rather than model or persistence internals.',
-  },
-  {
-    id: 'assistant', title: 'AssistantService', subtitle: 'Context coordinator', category: 'orchestration', x: 555, y: 80,
-    responsibility: 'Coordinates memory extraction, persistent memory, recent conversation history, agent execution, and response persistence.',
-    input: 'Conversation ID and current user message.', output: 'Prepared context and final AssistantExecution.',
-    communicatesWith: 'MemoryExtractorService, MemoryService, ConversationService, AgentService, and tracing.',
-    constraint: 'It does not run knowledge retrieval automatically.',
-  },
-  {
-    id: 'agent', title: 'Agent Loop', subtitle: 'AgentService · max 5', category: 'orchestration', x: 720, y: 80,
-    responsibility: 'Repeatedly asks the LLM to answer or choose a tool, then feeds controlled tool observations back to the model.',
-    input: 'System prompt, memory, recent conversation, current message, and prior observations.', output: 'A structured answer or another tool request.',
-    communicatesWith: 'LLMClient and ToolRegistry.', constraint: 'The loop stops after at most five iterations to prevent infinite execution.',
-  },
-  {
-    id: 'llm', title: 'Ollama / qwen3', subtitle: 'Model decision', category: 'model', x: 895, y: 80,
-    responsibility: 'Chooses whether available context is enough for an answer or whether a registered tool is needed.',
-    input: 'Agent context plus registered tool definitions.', output: 'Final content or inert tool-call data.',
-    communicatesWith: 'LLMClient through the agent loop.', constraint: 'The model cannot execute Java code or access Qdrant directly.',
-  },
-  {
-    id: 'memory', title: 'Persistent Memory', subtitle: 'PostgreSQL', category: 'data', x: 390, y: 245,
-    responsibility: 'Stores supported durable facts and makes current application-wide memories available for context assembly.',
-    input: 'Accepted memory facts and memory reads.', output: 'Stored production-region/default-service facts.',
-    communicatesWith: 'MemoryExtractorService, MemoryService, and AssistantService.', constraint: 'Memory is application-wide, while conversation history is in-memory and keyed by conversation ID.',
-  },
-  {
-    id: 'context', title: 'Context & History', subtitle: 'ConversationService', category: 'orchestration', x: 555, y: 245,
-    responsibility: 'Combines the system prompt, persistent memories, recent messages, current request, and later tool observations.',
-    input: 'Memory and recent conversation messages.', output: 'Ordered LLMMessage context for each decision.',
-    communicatesWith: 'AssistantService and AgentService.', constraint: 'Only user messages and final answers persist in the in-memory conversation history.',
-  },
-  {
-    id: 'registry', title: 'ToolRegistry', subtitle: 'Application allow-list', category: 'tool', x: 895, y: 245,
-    responsibility: 'Validates the model-requested function name and delegates only to explicitly registered Java tools.',
-    input: 'Inert ToolCall data from qwen3.', output: 'A successful or controlled-failure ToolResult observation.',
-    communicatesWith: 'AgentService and registered Tool implementations.',
-    constraint: 'Unknown tools are rejected; arguments and execution failures stay controlled by Java.',
-  },
-  {
-    id: 'knowledge', title: 'search_knowledge_base', subtitle: 'Optional RAG tool', category: 'tool', x: 720, y: 405,
-    responsibility: 'Exposes existing semantic retrieval as an agent-selected tool and formats retrieved chunks as an observation.',
-    input: 'Focused query and optional topK.', output: 'Relevant chunks with scores for the next LLM decision.',
-    communicatesWith: 'ToolRegistry and RunbookRetriever.',
-    constraint: 'Runs only when selected by the LLM; topK defaults to 3 and is capped at 10.',
-  },
-  {
-    id: 'embedding', title: 'Embedding Service', subtitle: 'embeddinggemma', category: 'data', x: 555, y: 405,
-    responsibility: 'Transforms the focused search query into a vector for similarity search.',
-    input: 'Knowledge-search query.', output: 'Embedding vector.', communicatesWith: 'RunbookRetriever and the configured Ollama embedding endpoint.',
-    constraint: 'It supports retrieval; it does not generate the assistant answer.',
-  },
-  {
-    id: 'qdrant', title: 'Qdrant', subtitle: 'Vector search', category: 'data', x: 390, y: 405,
-    responsibility: 'Searches the indexed deployment runbook collection for nearest vector matches.',
-    input: 'Query vector and effective topK.', output: 'Relevant runbook chunks and similarity scores.',
-    communicatesWith: 'VectorStoreClient through RunbookRetriever.', constraint: 'The LLM never accesses Qdrant directly.',
-  },
-  {
-    id: 'observation', title: 'Tool Observation', subtitle: 'LLMMessage role=tool', category: 'tool', x: 720, y: 555,
-    responsibility: 'Carries a tool result back into the mutable agent context so the model can decide again.',
-    input: 'Retrieved chunks or a controlled tool error.', output: 'Context for the next agent iteration.',
-    communicatesWith: 'AgentService and the next Ollama call.', constraint: 'An observation is context, not the final user-facing response.',
-  },
-  {
-    id: 'final', title: 'Final Response', subtitle: 'Answer + confidence', category: 'client', x: 895, y: 555,
-    responsibility: 'Returns the model answer through the backend to the exact assistant message in the UI.',
-    input: 'A no-tool LLM response parsed into AssistantResponse.', output: 'ChatResponse rendered by React.',
-    communicatesWith: 'AgentService, AssistantService, Backend API, and UI.', constraint: 'A direct answer may bypass all knowledge retrieval.',
-  },
-  {
-    id: 'trace', title: 'Trace Collector', subtitle: 'Observability side-channel', category: 'observability', x: 70, y: 330,
-    responsibility: 'Observes agent, LLM, tool, memory, embedding, vector-search, and final-response operations as causal spans.',
-    input: 'Sanitized lifecycle events.', output: 'A completed AgentTrace and derived summary.',
-    communicatesWith: 'Instrumented backend components and TraceStore.', constraint: 'Tracing observes decisions; it never makes or changes them and never stores hidden reasoning.',
-  },
-  {
-    id: 'trace-store', title: 'Trace Store', subtitle: 'Bounded in-memory', category: 'observability', x: 70, y: 450,
-    responsibility: 'Retains completed traces so detailed spans can be requested after the chat response.',
-    input: 'Completed AgentTrace records.', output: 'Trace details by traceId.', communicatesWith: 'TraceService and GET /api/traces/{traceId}.',
-    constraint: 'Keeps up to 500 entries; traces are lost on restart and may be evicted.',
-  },
-  {
-    id: 'trace-ui', title: 'Execution Trace UI', subtitle: 'Per-request evidence', category: 'observability', x: 225, y: 555,
-    responsibility: 'Lazily renders what happened during one particular assistant request.',
-    input: 'Trace summary and trace details loaded by traceId.', output: 'Expandable causal span tree.',
-    communicatesWith: 'Trace endpoint and an assistant message.', constraint: 'It is distinct from this static architecture explanation.',
-  },
+  { id: 'user', title: 'User', subtitle: 'Investigation request', category: 'client', x: 70, y: 65,
+    responsibility: 'Asks a documentation, runtime, or combined operational question.', input: 'Question and optional conversation ID.', output: 'Chat request.', communicatesWith: 'React UI.', constraint: 'Never accesses models or infrastructure directly.' },
+  { id: 'api', title: 'Assistant API', subtitle: 'Spring + AssistantService', category: 'orchestration', x: 260, y: 65,
+    responsibility: 'Validates the request, extracts memory, and assembles persistent memory plus conversation history.', input: 'POST /chat.', output: 'Supervisor context and final response.', communicatesWith: 'Supervisor, PostgreSQL, history, and UI.', constraint: 'Does not execute domain tools.' },
+  { id: 'supervisor', title: 'Supervisor Agent', subtitle: 'Delegation + synthesis', category: 'supervisor', x: 485, y: 65,
+    responsibility: 'Owns the user answer, selects one or both specialists, and synthesizes their findings.', input: 'System context, memory, history, and current message.', output: 'Delegations or structured final answer.', communicatesWith: 'Knowledge Agent, Runtime Agent, and Ollama.', constraint: 'Allowed tools: ask_knowledge_agent and ask_runtime_agent only.' },
+  { id: 'ollama', title: 'Ollama', subtitle: 'Supervisor + agent LLM calls', category: 'model', x: 710, y: 65,
+    responsibility: 'Produces inert model decisions for every bounded agent loop.', input: 'Agent-specific context and tool definitions.', output: 'Tool calls or structured content.', communicatesWith: 'AgentRuntime.', constraint: 'Cannot execute Java tools itself.' },
+  { id: 'final', title: 'Final Answer', subtitle: 'Answer + confidence', category: 'client', x: 900, y: 65,
+    responsibility: 'Returns the Supervisor synthesis and trace summary to the UI.', input: 'Structured Supervisor response.', output: 'ChatResponse.', communicatesWith: 'Assistant API and user.', constraint: 'Only the Supervisor produces it.' },
+  { id: 'knowledge-agent', title: 'Knowledge Agent', subtitle: 'Documentation specialist', category: 'agent', x: 350, y: 230,
+    responsibility: 'Investigates documentation, project source knowledge, and runbooks.', input: 'Focused Supervisor delegation.', output: 'Evidence-backed specialist finding.', communicatesWith: 'AgentRuntime, Ollama, and knowledge search.', constraint: 'Allowed tool: search_knowledge_base only. No runtime access.' },
+  { id: 'runtime-agent', title: 'Runtime Agent', subtitle: 'Operational specialist', category: 'agent', x: 620, y: 230,
+    responsibility: 'Investigates mocked current deployment status and logs.', input: 'Focused Supervisor delegation.', output: 'Runtime specialist finding.', communicatesWith: 'AgentRuntime, Ollama, and mock runtime tools.', constraint: 'Allowed tools: getDeploymentStatus and getDeploymentLogs only. No RAG access.' },
+  { id: 'knowledge-tool', title: 'search_knowledge_base', subtitle: 'RAG tool', category: 'tool', x: 350, y: 365,
+    responsibility: 'Searches indexed runbooks and project sources for relevant chunks.', input: 'Query and optional topK.', output: 'Ranked knowledge observations.', communicatesWith: 'Embedding model and Qdrant.', constraint: 'Only the Knowledge Agent can invoke it.' },
+  { id: 'runtime-tools', title: 'Mock Runtime Tools', subtitle: 'Status + deployment logs', category: 'tool', x: 620, y: 365,
+    responsibility: 'Restores deterministic operational data for payments-service and orders-service.', input: 'serviceName.', output: 'Mock status or recent log text.', communicatesWith: 'Mock deployment service.', constraint: 'Only the Runtime Agent can invoke them.' },
+  { id: 'embedding', title: 'Embedding Model', subtitle: 'embeddinggemma', category: 'data', x: 265, y: 500,
+    responsibility: 'Embeds focused knowledge queries.', input: 'Search query.', output: 'Query vector.', communicatesWith: 'Knowledge retriever and Ollama embedding API.', constraint: 'Does not generate answers.' },
+  { id: 'qdrant', title: 'Qdrant', subtitle: 'Indexed project knowledge', category: 'data', x: 435, y: 500,
+    responsibility: 'Returns nearest runbook and source chunks.', input: 'Query vector and topK.', output: 'Ranked chunks.', communicatesWith: 'Knowledge retriever.', constraint: 'Not directly accessible to any model.' },
+  { id: 'mock-data', title: 'Mock Services / Data', subtitle: 'Operational state', category: 'data', x: 620, y: 500,
+    responsibility: 'Models deployment state without external runtime dependencies.', input: 'Known service name.', output: 'Fixed status and logs.', communicatesWith: 'Runtime tools.', constraint: 'Mock observations are not documentation.' },
+  { id: 'memory', title: 'PostgreSQL Memory', subtitle: 'Persistent context', category: 'data', x: 70, y: 230,
+    responsibility: 'Stores durable application facts included in Supervisor context.', input: 'Accepted memory values.', output: 'Persistent facts.', communicatesWith: 'AssistantService.', constraint: 'Values are not written to traces.' },
+  { id: 'history', title: 'Conversation History', subtitle: 'Short-term context', category: 'data', x: 70, y: 365,
+    responsibility: 'Keeps recent user and final assistant messages per conversation.', input: 'Completed turns.', output: 'Recent context.', communicatesWith: 'AssistantService.', constraint: 'Tool observations are not persisted.' },
+  { id: 'trace', title: 'Trace Store + UI', subtitle: 'Nested observability', category: 'observability', x: 825, y: 365,
+    responsibility: 'Captures and renders Supervisor to specialist to tool to retrieval hierarchy.', input: 'Sanitized spans and parent IDs.', output: 'Expandable execution tree.', communicatesWith: 'Instrumented backend stages and View execution.', constraint: 'Never stores prompts, retrieved contents, memory values, or chain of thought.' },
 ]
 
 export const architectureEdges: ArchitectureEdgeModel[] = [
-  { id: 'user-ui', source: 'user', target: 'ui' },
-  { id: 'ui-api', source: 'ui', target: 'api', label: 'HTTP' },
-  { id: 'api-assistant', source: 'api', target: 'assistant' },
-  { id: 'assistant-agent', source: 'assistant', target: 'agent' },
-  { id: 'agent-llm', source: 'agent', target: 'llm', label: 'context' },
-  { id: 'assistant-memory', source: 'assistant', target: 'memory' },
-  { id: 'memory-context', source: 'memory', target: 'context' },
-  { id: 'assistant-context', source: 'assistant', target: 'context' },
-  { id: 'context-agent', source: 'context', target: 'agent' },
-  { id: 'llm-final', source: 'llm', target: 'final', label: 'direct answer', kind: 'optional', bend: 80 },
-  { id: 'llm-registry', source: 'llm', target: 'registry', label: 'tool call', kind: 'optional' },
-  { id: 'registry-knowledge', source: 'registry', target: 'knowledge' },
-  { id: 'knowledge-embedding', source: 'knowledge', target: 'embedding' },
+  { id: 'user-api', source: 'user', target: 'api', label: 'request' },
+  { id: 'api-supervisor', source: 'api', target: 'supervisor', label: 'context' },
+  { id: 'supervisor-ollama', source: 'supervisor', target: 'ollama', label: 'decision' },
+  { id: 'ollama-final', source: 'ollama', target: 'final', label: 'synthesis' },
+  { id: 'supervisor-knowledge', source: 'supervisor', target: 'knowledge-agent', label: 'delegate', kind: 'optional' },
+  { id: 'supervisor-runtime', source: 'supervisor', target: 'runtime-agent', label: 'delegate', kind: 'optional' },
+  { id: 'knowledge-tool-edge', source: 'knowledge-agent', target: 'knowledge-tool' },
+  { id: 'runtime-tools-edge', source: 'runtime-agent', target: 'runtime-tools' },
+  { id: 'knowledge-embedding', source: 'knowledge-tool', target: 'embedding' },
   { id: 'embedding-qdrant', source: 'embedding', target: 'qdrant' },
-  { id: 'qdrant-observation', source: 'qdrant', target: 'observation', label: 'chunks', bend: 70 },
-  { id: 'observation-agent', source: 'observation', target: 'agent', label: 'next iteration', kind: 'feedback', bend: -100 },
-  { id: 'agent-trace', source: 'agent', target: 'trace', kind: 'observes', bend: 90 },
-  { id: 'registry-trace', source: 'registry', target: 'trace', kind: 'observes', bend: 130 },
-  { id: 'knowledge-trace', source: 'knowledge', target: 'trace', kind: 'observes', bend: 80 },
-  { id: 'trace-store-edge', source: 'trace', target: 'trace-store', kind: 'observes' },
-  { id: 'store-trace-ui', source: 'trace-store', target: 'trace-ui', kind: 'observes', bend: -30 },
-  { id: 'final-ui', source: 'final', target: 'ui', label: 'ChatResponse', kind: 'feedback', bend: 130 },
+  { id: 'runtime-data', source: 'runtime-tools', target: 'mock-data' },
+  { id: 'knowledge-return', source: 'knowledge-agent', target: 'supervisor', label: 'finding', kind: 'feedback', bend: -75 },
+  { id: 'runtime-return', source: 'runtime-agent', target: 'supervisor', label: 'finding', kind: 'feedback', bend: 75 },
+  { id: 'memory-api', source: 'memory', target: 'api' },
+  { id: 'history-api', source: 'history', target: 'api' },
+  { id: 'supervisor-trace', source: 'supervisor', target: 'trace', kind: 'observes', bend: 80 },
+  { id: 'knowledge-trace', source: 'knowledge-agent', target: 'trace', kind: 'observes', bend: 50 },
+  { id: 'runtime-trace', source: 'runtime-agent', target: 'trace', kind: 'observes' },
 ]
 
 export const architectureFlowSteps: ArchitectureFlowStep[] = [
-  { title: 'User sends a request', description: 'React sends POST /chat with the message and optional conversation ID.', nodeIds: ['user', 'ui', 'api'], edgeIds: ['user-ui', 'ui-api'] },
-  { title: 'Backend prepares the run', description: 'AssistantService extracts durable memory and assembles system, memory, history, and user context.', nodeIds: ['api', 'assistant', 'memory', 'context'], edgeIds: ['api-assistant', 'assistant-memory', 'memory-context', 'assistant-context'] },
-  { title: 'Agent starts a bounded iteration', description: 'AgentService sends the assembled context and registered tool definitions to Ollama.', nodeIds: ['context', 'agent', 'llm'], edgeIds: ['context-agent', 'agent-llm'] },
-  { title: 'LLM chooses the next action', description: 'qwen3 either returns a final answer directly or emits inert tool-call data.', nodeIds: ['llm', 'final', 'registry'], edgeIds: ['llm-final', 'llm-registry'] },
-  { title: 'Registry validates the tool', description: 'Only an explicitly registered tool can execute; unknown tools and invalid arguments become controlled observations.', nodeIds: ['llm', 'registry'], edgeIds: ['llm-registry'] },
-  { title: 'Optional knowledge retrieval', description: 'Only when search_knowledge_base is selected, the query is embedded and searched in Qdrant.', nodeIds: ['registry', 'knowledge', 'embedding', 'qdrant'], edgeIds: ['registry-knowledge', 'knowledge-embedding', 'embedding-qdrant'] },
-  { title: 'Result becomes an observation', description: 'Retrieved chunks return as a tool-role message, not as the final answer.', nodeIds: ['qdrant', 'observation'], edgeIds: ['qdrant-observation'] },
-  { title: 'Agent decides again', description: 'The observation is appended to context and another LLM iteration begins, still within the five-iteration limit.', nodeIds: ['observation', 'agent', 'llm'], edgeIds: ['observation-agent', 'agent-llm'] },
-  { title: 'Final answer and trace return', description: 'The answer reaches the UI while trace details remain available separately for that one request.', nodeIds: ['final', 'ui', 'trace', 'trace-store', 'trace-ui'], edgeIds: ['final-ui', 'trace-store-edge', 'store-trace-ui'] },
+  { title: 'Context is assembled', description: 'The API combines persistent memory, recent conversation history, and the current request for the Supervisor.', nodeIds: ['user', 'api', 'memory', 'history', 'supervisor'], edgeIds: ['user-api', 'memory-api', 'history-api', 'api-supervisor'] },
+  { title: 'Supervisor chooses domains', description: 'A bounded Supervisor model call can delegate to Knowledge, Runtime, or both specialist agents.', nodeIds: ['supervisor', 'ollama', 'knowledge-agent', 'runtime-agent'], edgeIds: ['supervisor-ollama', 'supervisor-knowledge', 'supervisor-runtime'] },
+  { title: 'Knowledge investigation', description: 'The Knowledge Agent can only search indexed documentation through embedding and Qdrant retrieval.', nodeIds: ['knowledge-agent', 'knowledge-tool', 'embedding', 'qdrant'], edgeIds: ['knowledge-tool-edge', 'knowledge-embedding', 'embedding-qdrant'] },
+  { title: 'Runtime investigation', description: 'The Runtime Agent can only inspect restored mock deployment status and logs.', nodeIds: ['runtime-agent', 'runtime-tools', 'mock-data'], edgeIds: ['runtime-tools-edge', 'runtime-data'] },
+  { title: 'Findings return', description: 'Specialist answers become observations for the Supervisor; specialists cannot call one another.', nodeIds: ['knowledge-agent', 'runtime-agent', 'supervisor'], edgeIds: ['knowledge-return', 'runtime-return'] },
+  { title: 'Supervisor synthesizes', description: 'The Supervisor combines available findings into the only user-facing answer.', nodeIds: ['supervisor', 'ollama', 'final'], edgeIds: ['supervisor-ollama', 'ollama-final'] },
+  { title: 'Execution stays observable', description: 'Sanitized parent-child spans let View execution reconstruct arbitrary multi-agent nesting.', nodeIds: ['supervisor', 'knowledge-agent', 'runtime-agent', 'trace'], edgeIds: ['supervisor-trace', 'knowledge-trace', 'runtime-trace'] },
 ]
