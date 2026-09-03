@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatResponse, Memory, MemoryRequest } from './types'
+import type { ChatRequest, ChatResponse, Memory, MemoryRequest, TraceDetails } from './types'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
@@ -28,6 +28,10 @@ export async function saveMemory(request: MemoryRequest): Promise<void> {
     method: 'POST',
     body: JSON.stringify(request),
   })
+}
+
+export async function getExecutionTrace(traceId: string): Promise<TraceDetails> {
+  return apiRequest(`/api/traces/${encodeURIComponent(traceId)}`)
 }
 
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {

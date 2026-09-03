@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ApiError, getMemories, sendChatMessage, saveMemory } from './api'
-import type { ChatMessage, Memory, MemoryKey } from './types'
+import { ApiError, getExecutionTrace, getMemories, sendChatMessage, saveMemory } from './api'
+import type { ChatMessage, Memory, MemoryKey, TraceDetails, TraceSummary } from './types'
+import { ExecutionTracePanel } from './ExecutionTracePanel'
 import './App.css'
 
 const MEMORY_KEYS: { value: MemoryKey; label: string }[] = [
@@ -15,6 +16,10 @@ function App() {
   const [message, setMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [chatError, setChatError] = useState<string>()
+  const [selectedTrace, setSelectedTrace] = useState<TraceSummary>()
+  const [traceDetails, setTraceDetails] = useState<TraceDetails>()
+  const [isLoadingTrace, setIsLoadingTrace] = useState(false)
+  const [traceError, setTraceError] = useState<string>()
 
   const [memories, setMemories] = useState<Memory[]>([])
   const [memoryKey, setMemoryKey] = useState<MemoryKey>('PRODUCTION_REGION')
@@ -86,10 +91,11 @@ function App() {
       setMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: response.messageId,
           role: 'assistant',
           content: response.answer,
           confidence: response.confidence,
+          trace: response.trace,
         },
       ])
     } catch (error) {
@@ -122,6 +128,28 @@ function App() {
     setConversationId(undefined)
     setMessages([])
     setChatError(undefined)
+    closeTrace()
+  }
+
+  async function openTrace(summary: TraceSummary) {
+    setSelectedTrace(summary)
+    setTraceDetails(undefined)
+    setTraceError(undefined)
+    setIsLoadingTrace(true)
+    try {
+      setTraceDetails(await getExecutionTrace(summary.traceId))
+    } catch (error) {
+      setTraceError(toErrorMessage(error))
+    } finally {
+      setIsLoadingTrace(false)
+    }
+  }
+
+  function closeTrace() {
+    setSelectedTrace(undefined)
+    setTraceDetails(undefined)
+    setTraceError(undefined)
+    setIsLoadingTrace(false)
   }
 
   return (
@@ -188,6 +216,13 @@ function App() {
                   )}
                 </div>
                 <p>{chatMessage.content}</p>
+                {chatMessage.role === 'assistant' && chatMessage.trace && (
+                  <button className="trace-trigger" type="button" onClick={() => void openTrace(chatMessage.trace!)}>
+                    <span aria-hidden="true">⌁</span>
+                    View execution
+                    <small>{formatDuration(chatMessage.trace.durationMs)} · {chatMessage.trace.agentIterations} iterations</small>
+                  </button>
+                )}
               </article>
             ))}
 
@@ -277,6 +312,16 @@ function App() {
           {memoryError && <div className="error-banner" role="alert">{memoryError}</div>}
         </aside>
       </div>
+      {selectedTrace && (
+        <ExecutionTracePanel
+          summary={selectedTrace}
+          trace={traceDetails}
+          isLoading={isLoadingTrace}
+          error={traceError}
+          onClose={closeTrace}
+          onRetry={() => void openTrace(selectedTrace)}
+        />
+      )}
     </main>
   )
 }
@@ -297,6 +342,10 @@ function formatDate(value?: string) {
   if (Number.isNaN(date.getTime())) return 'recently'
 
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+}
+
+function formatDuration(value: number) {
+  return value < 1000 ? `${value} ms` : `${(value / 1000).toFixed(1)} s`
 }
 
 export default App
