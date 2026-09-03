@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { ApiError, getExecutionTrace, getMemories, sendChatMessage, saveMemory } from './api'
 import type { ChatMessage, Memory, MemoryKey, TraceDetails, TraceSummary } from './types'
 import { ExecutionTracePanel } from './ExecutionTracePanel'
+import { AgentArchitectureDialog } from './AgentArchitectureDialog'
 import './App.css'
 
 const MEMORY_KEYS: { value: MemoryKey; label: string }[] = [
@@ -20,6 +21,7 @@ function App() {
   const [traceDetails, setTraceDetails] = useState<TraceDetails>()
   const [isLoadingTrace, setIsLoadingTrace] = useState(false)
   const [traceError, setTraceError] = useState<string>()
+  const [isArchitectureOpen, setIsArchitectureOpen] = useState(false)
 
   const [memories, setMemories] = useState<Memory[]>([])
   const [memoryKey, setMemoryKey] = useState<MemoryKey>('PRODUCTION_REGION')
@@ -162,9 +164,14 @@ function App() {
             <h1>AI Assistant</h1>
           </div>
         </div>
-        <div className="connection-status">
-          <span className="status-dot" aria-hidden="true" />
-          Backend configured
+        <div className="topbar-actions">
+          <button className="secondary-button architecture-trigger" type="button" onClick={() => setIsArchitectureOpen(true)}>
+            <span aria-hidden="true">⌘</span> How it works
+          </button>
+          <div className="connection-status">
+            <span className="status-dot" aria-hidden="true" />
+            Backend configured
+          </div>
         </div>
       </header>
 
@@ -322,6 +329,7 @@ function App() {
           onRetry={() => void openTrace(selectedTrace)}
         />
       )}
+      {isArchitectureOpen && <AgentArchitectureDialog onClose={() => setIsArchitectureOpen(false)} />}
     </main>
   )
 }

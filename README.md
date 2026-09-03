@@ -9,6 +9,16 @@ React frontend for the deployment investigation assistant.
 - List persistent application memories.
 - Save production-region and default-service memories.
 - Surface validation and backend errors in the interface.
+- Explore the implemented backend design through the interactive **How it works** architecture dialog.
+- Open a per-message execution trace to inspect what happened during one specific request.
+
+## Architecture visualization
+
+The **How it works** control opens a high-level diagram of the current backend architecture. Selectable nodes explain responsibilities, inputs, outputs, collaborators, and safety constraints. A request-flow walkthrough highlights the direct-answer path and the optional tool-selected RAG feedback loop step by step.
+
+Architecture content is maintained separately from rendering in `src/architectureModel.ts` as typed nodes, edges, and flow steps. `AgentArchitectureDialog` renders that model with React, CSS, and a lightweight SVG connection layer; no graph dependency is needed for the fixed, small architecture.
+
+The architecture view explains how the system is built. It is intentionally separate from **View execution**, which lazily loads observable events from one completed assistant request.
 
 ## Local development
 
@@ -19,7 +29,7 @@ npm install
 npm run dev
 ```
 
-The Vite development server proxies `/chat` and `/memory` to `http://localhost:8080`.
+The Vite development server proxies `/chat`, `/memory`, and `/api` to `http://localhost:8080`.
 
 To call another backend directly, create `.env.local`:
 
