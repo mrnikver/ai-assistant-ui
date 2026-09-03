@@ -45,8 +45,28 @@
 .message.user { margin-left: auto; }
 .message-label { margin-bottom: 7px; display: flex; align-items: center; gap: 9px; color: var(--muted); font: 500 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .08em; }
 .message.user .message-label { justify-content: flex-end; }
-.message p { margin: 0; padding: 15px 17px; border: 1px solid var(--border); border-radius: 5px 15px 15px 15px; background: var(--surface-raised); font-size: 14px; line-height: 1.65; white-space: pre-wrap; }
-.message.user p { border-color: #31685d; border-radius: 15px 5px 15px 15px; background: #123b37; }
+.message > p, .assistant-markdown { margin: 0; padding: 15px 17px; border: 1px solid var(--border); border-radius: 5px 15px 15px 15px; background: var(--surface-raised); font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.message.user > p { border-color: #31685d; border-radius: 15px 5px 15px 15px; background: #123b37; white-space: pre-wrap; }
+.assistant-markdown > :first-child { margin-top: 0; }
+.assistant-markdown > :last-child { margin-bottom: 0; }
+.assistant-markdown p { margin: 0 0 10px; }
+.assistant-markdown h1, .assistant-markdown h2, .assistant-markdown h3, .assistant-markdown h4, .assistant-markdown h5, .assistant-markdown h6 { margin: 16px 0 7px; color: #f3f7fc; line-height: 1.3; letter-spacing: -.015em; }
+.assistant-markdown h1 { font-size: 20px; }.assistant-markdown h2 { font-size: 18px; }.assistant-markdown h3 { font-size: 16px; }.assistant-markdown h4, .assistant-markdown h5, .assistant-markdown h6 { font-size: 14px; }
+.assistant-markdown ul, .assistant-markdown ol { margin: 7px 0 11px; padding-left: 24px; }
+.assistant-markdown li { margin: 3px 0; padding-left: 2px; }
+.assistant-markdown li > p { margin: 3px 0; }
+.assistant-markdown code { padding: 2px 5px; border: 1px solid #385067; border-radius: 5px; color: #9ce9cf; background: #0b1724; font: 500 .88em 'DM Mono', monospace; }
+.assistant-markdown pre { max-width: 100%; margin: 10px 0 12px; padding: 13px 14px; overflow-x: auto; border: 1px solid #30465c; border-radius: 9px; background: #09131f; }
+.assistant-markdown pre code { padding: 0; border: 0; color: #d4deea; background: transparent; font-size: 12px; line-height: 1.6; overflow-wrap: normal; white-space: pre; }
+.assistant-markdown blockquote { margin: 10px 0 12px; padding: 7px 13px; border-left: 3px solid #4c8b7f; color: #b7c4d3; background: rgba(11, 23, 36, .55); }
+.assistant-markdown blockquote > :last-child { margin-bottom: 0; }
+.assistant-markdown a { color: #7ce7c3; text-decoration-color: rgba(124, 231, 195, .5); text-underline-offset: 2px; }
+.assistant-markdown a:hover { color: #a8f2d9; text-decoration-color: currentColor; }
+.assistant-markdown table { width: 100%; margin: 10px 0 12px; border-collapse: collapse; display: block; overflow-x: auto; font-size: 12px; }
+.assistant-markdown th, .assistant-markdown td { min-width: 110px; padding: 7px 9px; border: 1px solid #34495f; text-align: left; vertical-align: top; }
+.assistant-markdown th { color: #dfe8f3; background: #192a3d; font-weight: 650; }
+.assistant-markdown tr:nth-child(even) td { background: rgba(9, 19, 31, .35); }
+.assistant-markdown hr { margin: 14px 0; border: 0; border-top: 1px solid var(--border-bright); }
 .trace-trigger { margin-top: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 7px; border: 1px solid #315068; border-radius: 8px; color: #b9c9db; background: #101d2c; font-size: 11px; }
 .trace-trigger:hover { border-color: var(--accent); color: var(--accent); }
 .trace-trigger small { margin-left: 4px; color: #70849a; font: 400 9px 'DM Mono', monospace; }
