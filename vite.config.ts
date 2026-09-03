@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/chat': 'http://localhost:8080',
       '/memory': 'http://localhost:8080',
+      '/api': 'http://localhost:8080',
     },
   },
 })
