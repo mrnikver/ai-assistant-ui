@@ -7,6 +7,8 @@ description: Deliver project changes through a safe branch, commit, push, pull-r
 
 Apply this workflow independently in every affected repository. Preserve unrelated working-tree and index changes throughout.
 
+Use command-line tooling for the entire workflow. Never use Codex UI, browser automation, or web forms for Git or GitHub operations. Use the `git` CLI for repository operations and the `gh` CLI for GitHub pull-request operations. If the required CLI authentication is unavailable, report the blocker and ask the user to authenticate it; do not fall back to UI.
+
 ## Start work
 
 1. Inspect `git status`, the current branch, remotes, and relevant repository instructions.
