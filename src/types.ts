@@ -1,5 +1,19 @@
 export type Confidence = 'LOW' | 'MEDIUM' | 'HIGH'
 export type MemoryKey = 'PRODUCTION_REGION' | 'DEFAULT_SERVICE'
+export type AssistantResponseStatus = 'ANSWER' | 'CONFIRMATION_REQUIRED' | 'ACTION_EXECUTED'
+  | 'ACTION_EXPIRED' | 'ACTION_ALREADY_RESOLVED'
+export type PendingActionStatus = 'AWAITING_CONFIRMATION' | 'CONFIRMED' | 'EXECUTING' | 'EXECUTED'
+  | 'FAILED' | 'EXPIRED' | 'SUPERSEDED'
+
+export interface PendingActionDetails {
+  pendingActionId: string
+  tool: string
+  arguments: Record<string, unknown>
+  confirmationRequired: boolean
+  confirmationStatus: PendingActionStatus
+  executionStatus: string
+  message: string
+}
 
 export interface ChatRequest {
   conversationId?: string
@@ -12,6 +26,8 @@ export interface ChatResponse {
   answer: string
   confidence: Confidence
   trace: TraceSummary
+  status: AssistantResponseStatus
+  pendingAction: PendingActionDetails | null
 }
 
 export type TraceStatus = 'SUCCESS' | 'ERROR'
